@@ -1,0 +1,141 @@
+﻿@model LibrarySystem.Models.HomeBookData
+
+@{
+    ViewBag.Title = "Index";
+    List<SelectListItem> BookClassItem = ViewBag.BookClassSelectList;
+    List<SelectListItem> BookKeeperItem = ViewBag.BookKeeperSelectList;
+    List<SelectListItem> BookStatusItem = ViewBag.BookStatusSelectList;
+
+}
+
+<h2>圖書管理系統</h2>
+@if (ViewBag.ResultMessage != null)
+{
+    @Html.Label("info", (string)ViewBag.ResultMessage, new { @class = "text-danger" })
+}
+
+@*
+public static MvcHtmlString DropDownListFor<TModel, TProperty>
+(
+    this HtmlHelper<TModel> htmlHelper,
+    Expression<Func<TModel, TProperty>> expression,
+    IEnumerable<SelectListItem> selectList,
+    Object htmlAttributes
+)
+Expression<Func<TModel,TProperty>> expression：使用lambda運算式來表示指定回傳表單的名稱。
+
+IEnumerable<SelectListItem> selectList：SelectListItem 物件的集合，這些物件是用來填入下拉式清單。
+
+Object htmlAttributes：針對項目設定的 HTML 屬性。
+    
+*@
+@using (Html.BeginForm("Index", "Home", FormMethod.Post, new { id = "Form1" }))
+{
+    <div class="form-horizontal">
+        <div class="form-group">
+            @Html.LabelFor(m => m.BookName, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(m => m.BookName, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.BookClass, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.BookClass, BookClassItem, "請選擇", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.BookKeeper, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.BookKeeper, BookKeeperItem, "請選擇", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(m => m.status, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownListFor(m => m.status, BookStatusItem, "請選擇", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-2">
+            </div>
+            <div class="col-md-10">
+                <input type="submit" value="查詢" />
+                @Html.ActionLink("新增書籍", "InsertBookData")
+                @Html.ActionLink("清除", "Index")
+            </div>
+        </div>
+    </div>
+}
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.BookClass)
+        </th>
+        <th style="width:600px;">
+            @Html.DisplayNameFor(model => model.BookName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BookBoughtDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.status)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BookKeeper)
+        </th>
+        <th></th>
+    </tr>
+    @if (ViewBag.QueryBookDatas != null)
+    {
+        foreach (LibrarySystem.Models.HomeBookData item in ViewBag.QueryBookDatas)
+        {
+            <tr>
+                <td>
+                    @item.BookClass
+                </td>
+                <td>
+                    @item.BookName
+                </td>
+                <td>
+                    @item.BookBoughtDate.ToString("yyyy/MM/dd")
+                </td>
+                <td>
+                    @item.status
+                </td>
+                <td>
+                    @item.BookKeeper
+                </td>
+                <td>
+                    @Html.ActionLink("Edit", "EditBookData", new { id = item.BookId }, new { @class = "btn btn-default" }) |
+                    <a class="btnDelete" href="#">刪除</a>
+                    <input type="hidden" value='@item.BookId' />
+                </td>
+            </tr>
+        }
+    }
+</table>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $(".btnDelete").click(function (e) {
+            e.preventDefault();
+            var tr = $(this).closest('tr')
+            var data = $(this).next().val();
+            console.log(data);
+            $.ajax({
+                type: "POST",
+                url: "/Home/DeleteBookData", //透過Route進去Controller Action
+                data: { BookId: data }, //以物件方式 傳入參數並將資料指向
+                dataType: "json",
+                success: function (response) {
+                    $(tr).remove();
+                }, error: function (error) {
+                    alert("系統發生錯誤");
+                }
+            });
+            return false;
+        });
+    });
+</script>
